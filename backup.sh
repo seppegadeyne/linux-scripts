@@ -6,7 +6,6 @@ for user in `find /home -maxdepth 1 -type d`; do
       if [[ $web_application != "${user}/webapps" ]] && [[ ${user/\/home\//} != "arthur" ]]; then
         cd ${web_application}
         application_name=`echo ${web_application} | cut -d / -f 5`
-        echo "Working on ${application_name}..."
         if [[ -e "${web_application}/wp-config.php" ]]; then
           # Backup WordPress MySQL
           sudo -u ${user/\/home\//} wp db export - | gzip > ./${application_name}_db_backup.sql.gz
