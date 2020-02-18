@@ -1,5 +1,7 @@
 #! /bin/bash
 
+wp cli update >/dev/null
+
 for user in `find /home -maxdepth 1 -type d`; do
   if [[ $user != "." ]] && [[ -d "${user}/webapps" ]]; then
     for web_application in `find "${user}/webapps" -maxdepth 1 -type d`; do
