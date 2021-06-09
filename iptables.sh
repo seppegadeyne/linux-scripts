@@ -10,12 +10,34 @@ iptables -P INPUT DROP
 iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 
+IP_SERVER="161.97.160.205"
+# Your DNS servers you use: cat /etc/resolv.conf
+DNS_SERVER="127.0.0.53 161.97.189.51 161.97.189.52"
+
+## Allow everything on localhost
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+
+for ip in $DNS_SERVER 
+do
+	echo "Allowing DNS lookups (tcp, udp port 53)"
+	iptables -A OUTPUT -p udp -d $ip --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+	iptables -A INPUT  -p udp -s $ip --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+	iptables -A OUTPUT -p tcp -d $ip --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
+	iptables -A INPUT  -p tcp -s $ip --sport 53 -m state --state ESTABLISHED     -j ACCEPT
+done
+
 ## Allow SSH
-iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
 
-## Excercise KdG
-iptables -A INPUT -p icmp -m limit -j LOG --log-prefix "IPTABLES ICMP: "
+## Disable incoming ping requests
+iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -d $IP_SERVER -m state --state NEW,ESTABLISHED,RELATED -j DROP
+iptables -A OUTPUT -p icmp --icmp-type 0 -s $IP_SERVER -d 0/0 -m state --state ESTABLISHED,RELATED -j DROP
+
+## Enable outgoing ping requests
+iptables -A OUTPUT -p icmp --icmp-type 8 -s $IP_SERVER -d 0/0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type 0 -s 0/0 -d $IP_SERVER -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 ## Make sure NEW incoming tcp connections are SYN packets, otherwise drop them
 iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
@@ -46,18 +68,18 @@ iptables -A INPUT -p tcp --syn --dport 80 -m connlimit --connlimit-above 100 --c
 iptables -A INPUT -p tcp --syn --dport 443 -m connlimit --connlimit-above 100 --connlimit-mask 31 -j REJECT --reject-with tcp-reset
 
 ## Allow 1000 new connections (packets) per second
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -m limit --limit 1000/second --limit-burst 1250 -j ACCEPT
-iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j DROP
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -m limit --limit 1000/s --limit-burst 1250 -j ACCEPT
+# Should drop them here
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+## Redirect port 8080 to 80
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 8080 -j REDIRECT --to-port 80
 
 ## Allow http and https
-iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 80 -m state --state ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
-
-## Allow dns lookup
-iptables -A INPUT -p udp --dport 53 -j ACCEPT
-iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
 
 ## Log all other connections
 iptables -A INPUT -j LOG --log-prefix "IPTABLES INPUT: "
@@ -65,6 +87,7 @@ iptables -A OUTPUT -j LOG --log-prefix "IPTABLES OUTPUT: "
 
 ## Drop all other connections
 iptables -A INPUT -j DROP
+iptables -A OUTPUT -j DROP
 
 ## End setup iptables
 iptables -L -n -v
