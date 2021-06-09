@@ -11,8 +11,8 @@ iptables -P OUTPUT DROP
 iptables -P FORWARD DROP
 
 ## Allow SSH
-iptables -A INPUT -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp --sport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
 
 ## Make sure NEW incoming tcp connections are SYN packets, otherwise drop them
 iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
@@ -53,10 +53,10 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -m limit --limit 300/seco
 iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 ## Allow http and https
-iptables -A INPUT -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 80 -m state --state ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -m state --state ESTABLISHED -j ACCEPT
 
 ## Allow dns lookup
 iptables -A INPUT -p udp --dport 53 -j ACCEPT
