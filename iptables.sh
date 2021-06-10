@@ -20,12 +20,12 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 ## Disable incoming ping requests
-iptables -A INPUT -p icmp -s 0/0 -d $IP_SERVER -m state --state NEW,ESTABLISHED,RELATED -j REJECT
-iptables -A OUTPUT -p icmp -s $IP_SERVER -d 0/0 -m state --state ESTABLISHED,RELATED -j REJECT
+iptables -A INPUT -p icmp --icmp-type 8 -s 0/0 -d $IP_SERVER -m state --state NEW,ESTABLISHED,RELATED -j REJECT
+iptables -A OUTPUT -p icmp --icmp-type 0 -s $IP_SERVER -d 0/0 -m state --state ESTABLISHED,RELATED -j REJECT
 
 ## Enable outgoing ping requests
-iptables -A OUTPUT -p icmp -s $IP_SERVER -d 0/0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -p icmp -s 0/0 -d $IP_SERVER -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p icmp --icmp-type 8 -s $IP_SERVER -d 0/0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type 0 -s 0/0 -d $IP_SERVER -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 ## Make sure NEW incoming tcp connections are SYN packets, otherwise drop them
 iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
