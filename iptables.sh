@@ -27,7 +27,6 @@ iptables -A OUTPUT -p icmp -s $IP_SERVER -d 0/0 -m state --state ESTABLISHED,REL
 iptables -A OUTPUT -p icmp -s $IP_SERVER -d 0/0 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p icmp -s 0/0 -d $IP_SERVER -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-
 ## Make sure NEW incoming tcp connections are SYN packets, otherwise drop them
 iptables -A INPUT -p tcp ! --syn -m state --state NEW -j DROP
 
