@@ -38,31 +38,13 @@ iptables -A INPUT -m pkttype --pkt-type broadcast -j DROP
 iptables -A INPUT -m pkttype --pkt-type multicast -j DROP
 iptables -A INPUT -m state --state INVALID -j DROP
 
-## Allow outgoing connections to port 25
-iptables -A OUTPUT -p tcp --dport 25 -m state --state NEW, ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp --sport 25 -m state --state ESTABLISHED -j ACCEPT
+# Allow outgoing TCP connections to port 22,53,80,443,587,1883
+iptables -A OUTPUT -p tcp -m multiport --dports 22,53,80,443,587,1883 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --sports 22,53,80,443,587,1883 -m state --state ESTABLISHED -j ACCEPT
 
-## Allow outgoing SSH
-iptables -A OUTPUT -p tcp --dport 22 -m state --state NEW, ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
-
-## Allow DNS lookups
-iptables -A OUTPUT -p udp --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p udp --sport 53 -m state --state ESTABLISHED -j ACCEPT
-iptables -A OUTPUT -p tcp --dport 53 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp --sport 53 -m state --state ESTABLISHED -j ACCEPT
-
-# Allowing new and established outgoing connections to port 80, 443
-iptables -A OUTPUT -p tcp -m multiport --dports 80,443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --sports 80,443 -m state --state ESTABLISHED -j ACCEPT
-
-# Allow outgoing UDP connections to port 443
-iptables -A OUTPUT -p udp --dport 443 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p udp --sport 443 -m state --state ESTABLISHED -j ACCEPT
-
-# Allow outgoing connections to port 123 (ntp syncs)
-iptables -A OUTPUT -p udp --dport 123 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p udp --sport 123 -m state --state ESTABLISHED -j ACCEPT
+# Allow outgoing UDP connections to port 53,123,443
+iptables -A OUTPUT -p udp -m multiport --dports 53,123,443 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p udp -m multiport --sports 53,123,443 -m state --state ESTABLISHED -j ACCEPT
 
 # Allow outgoing ICMP connections
 iptables -A OUTPUT -p icmp --icmp-type 8 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
