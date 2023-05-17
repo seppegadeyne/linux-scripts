@@ -38,11 +38,11 @@ iptables -A INPUT -m pkttype --pkt-type broadcast -j DROP
 iptables -A INPUT -m pkttype --pkt-type multicast -j DROP
 iptables -A INPUT -m state --state INVALID -j DROP
 
-# Allow outgoing TCP connections to port 22,53,80,443,587,1883
-iptables -A OUTPUT -p tcp -m multiport --dports 22,53,80,443,587,1883 -m state --state NEW,ESTABLISHED -j ACCEPT
-iptables -A INPUT -p tcp -m multiport --sports 22,53,80,443,587,1883 -m state --state ESTABLISHED -j ACCEPT
+# Allow outgoing TCP connections to port 22,22022,53,80,443,587,1883
+iptables -A OUTPUT -p tcp -m multiport --dports 22,8443,53,80,443,587,1883 -m state --state NEW,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp -m multiport --sports 22,8443,53,80,443,587,1883 -m state --state ESTABLISHED -j ACCEPT
 
-# Allow outgoing UDP connections to port 53,123,443
+# Allow outgoing UDP connections to port 53,67,123,443
 iptables -A OUTPUT -p udp -m multiport --dports 53,123,443 -m state --state NEW,ESTABLISHED -j ACCEPT
 iptables -A INPUT -p udp -m multiport --sports 53,123,443 -m state --state ESTABLISHED -j ACCEPT
 
