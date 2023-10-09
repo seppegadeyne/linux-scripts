@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import sys
+import io
+import os
 from itertools import chain
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter
@@ -10,7 +12,7 @@ def print_help():
     print("\nThis script subsets the specified font file, keeping only the specified Unicode ranges and characters.")
     print("\nDependencies:")
     print("  - Python 3")
-    print("  - FontTools: Install using 'pip install fonttools'\n")
+    print("  - FontTools: Install using 'pip install fonttools'")
 
 if len(sys.argv) != 2 or sys.argv[1] in ('-h', '--help'):
     print_help()
@@ -35,9 +37,8 @@ subsetter = Subsetter()
 subsetter.populate(unicodes=list(chain.from_iterable(unicode_ranges)))
 
 subsetter.subset(font)
-
-with open(output_font_path, 'wb') as woff2_file:
-    woff2_data = compress(font)
-    woff2_file.write(woff2_data)
+font_data = io.BytesIO()
+font.save(font_data)
+woff2_data = compress(font_data, output_font_path)
 
 print(f"Subsetted WOFF2 font saved to: {output_font_path}")
